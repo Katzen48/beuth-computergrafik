@@ -39,7 +39,7 @@ require(["dojo", "dojo/parser", "dojo/domReady!"], function(dojo) {
 		paths : {
 			// Absolute path to cog1 project, local directory without
 			// HTTP-server:
-			"cog1" : "/Aufgabe1/cog1"
+			"cog1" : "/beuth-computergrafik/Aufgabe1"
 		},
 		// Add one entry for each custom module.
 		// This is, among others, necessary to apply the path parameter.

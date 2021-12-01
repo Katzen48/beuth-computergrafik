@@ -131,47 +131,36 @@ define(["exports", "scene"], function(exports, scene) {
 		// The first access on a pixel does not need a test.
 		let current = zBuf[indexZBuf];
 
-		if (!current || current === maxDistance) {
+		if (current === maxDistance) {
 			zBuf[indexZBuf] = z;
 			return true;
 		}
 
-		let e = (current - z);
+		//if (color.colorname === 'magenta') {
+			//console.log('Wanted:', z, 'Current:', current);
+		//}
 
-		if (z < current) {
-			zBuf[indexZBuf] = z;
-			return true;
-		} else if(e > 1) {
-			// On z-buffer fights color black should win to emphasize debug edges.
-			// Use some small epsilon to determine z-buffer fights
-			// in favor of the the polygon processed first or last (depending on sign).
-			// Epsilon depends on the z-range of the scene.
+		// On z-buffer fights color black should win to emphasize debug edges.
+		// Use some small epsilon to determine z-buffer fights
+		// in favor of the the polygon processed first or last (depending on sign).
+		// Epsilon depends on the z-range of the scene.
 
-			// Guess some decent epsilon (which may be >1 despite the name).
-			let index = (y * width + x) * 4;
-			let r = framebuffer[index];
-			let g = framebuffer[++index];
-			let b = framebuffer[++index];
-			let a = framebuffer[++index];
+		// Guess some decent epsilon (which may be >1 despite the name).
+		let e = 1;
 
-			if (color.rgbaShaded[0] === r && color.rgbaShaded[1] === g && color.rgbaShaded[2] === b && color.rgbaShaded[3] === a) {
-				return false;
-			}
-
-			if (color.colorname === 'black') {
+		if (z - current >= e || z - current <= -e) {
+			if (z - current > 0) {
 				zBuf[indexZBuf] = z;
 				return true;
 			}
-
-			return false;
 		}
 
-			// The camera is in the origin looking in negative z-direction.
+		// The camera is in the origin looking in negative z-direction.
 
 
 		// END exercise Z-Buffer
 
-		return true;
+		return false;
 	}
 
 	/**

@@ -427,36 +427,59 @@ define(["exports", "data", "glMatrix"], function(data, exports) {
 		
 		// BEGIN exercise Z-Buffer
 		// BEGIN exercise Vertex-Normals
-		let edge1 = vertices[0];
-		let edge2 = vertices[vertices.length - 1];
 
 		// Two edge-vectors dim 3:
+		// Check for polygon vertex exist (common index error in data).
+		if (polygon.length < 3) {
+			console.log('Not enough polygons');
 
-				// Check for polygon vertex exist (common index error in data).
+			return [0,0,0];
+		}
 
-					// We do not use the matrix lib here.
+		let edge0 = vertices[polygon[0]];
+		let edge1 = vertices[polygon[1]];
+		let x1 = edge1[0] - edge0[0];
+		let y1 = edge1[1] - edge0[1];
+		let z1 = edge1[2] - edge0[2];
 
-			// Calculate normal vector from vector product of edges.
-		n[0] = edge1[1] * edge2[2] - edge1[2] * edge2[1];
-		n[1] = edge1[2] * edge2[0] - edge1[0] * edge2[2];
-		n[2] = edge1[0] * edge2[1] - edge1[1] * edge2[0];
+		let edge2 = vertices[polygon[2]];
+		let x2 = edge2[0] - edge0[0];
+		let y2 = edge2[1] - edge0[1];
+		let z2 = edge2[2] - edge0[2];
+		// We do not use the matrix lib here.
+
+		// Calculate normal vector from vector product of edges.
+		n[0] = y1 * z2 - z1 * y2;
+		n[1] = z1 * x2 - x1 * z2;
+		n[2] = x1 * y2 - y1 * x2;
+
+		// Check that e[u] are not parallel.
+		let p1 = edge1[0] / edge2[0];
+		let p2 = edge1[1] / edge2[1];
+		let p3 = edge1[2] / edge2[2];
+
+		if (p1 === p2 && p1 === p3) {
+			console.log('Parallel');
+
+			return [0,0,0];
+		}
+
+		// Normal exist, otherwise try next edges.
+
+		// Set null-vector (alternative: positive z-direction) as default.
+
+		// Normalize n, ignoring w.
+		// We do this by hand as the length is already calculated.
 
 		let length = Math.sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-			// Check that e[u] are not parallel.
 
-				// Normal exist, otherwise try next edges.
-
-			// Set null-vector (alternative: positive z-direction) as default.
-
-			// Normalize n, ignoring w.
-			// We do this by hand as the length is already calculated.
 		n[0] = n[0] / length;
 		n[1] = n[1] / length;
 		n[2] = n[2] / length;
 
 		
 		// Only  for template, comment this out for solution.
-		return 1;
+		return n;
 
 		// END exercise Vertex-Normals
 		// END exercise Z-Buffer

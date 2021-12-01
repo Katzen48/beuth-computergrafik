@@ -117,7 +117,7 @@ function(exports, shader, framebuffer, data) {
 		var z = startZ;
 
 		// z is linearly interpolated with delta dz in each step of the driving variable.
-		var dz = -AdivC;
+		var dz;
 
 		// Prepare bi-linear interpolation for shading and textureing.
 		// Interpolated weight in interval [0,1] of the starting- and end-point of the current edge.
@@ -133,7 +133,7 @@ function(exports, shader, framebuffer, data) {
 		//return;
 
 		// Skip it, if the line is just a point.
-		if(dX === 0 && dY === 0) {
+		if(dXAbs === 0 && dYAbs === 0) {
 			return;
 		}
 
@@ -141,10 +141,9 @@ function(exports, shader, framebuffer, data) {
 		// as the end point of the previous edge.
 		// In any case, do not add an intersection for start point here,
 		// this should happen later in the scanline function.
-		framebuffer.set(x, y, getZ(x, y), color);
 
 		// Distinction of cases for driving variable.
-		if(dXAbs > dYAbs) {
+		if(dXAbs >= dYAbs) {
 			// x is driving variable.
 			let previousY = y - dYSign;
 			e = dXAbs - dYAbs2;
@@ -158,11 +157,13 @@ function(exports, shader, framebuffer, data) {
 				} else {
 					y += dYSign;
 					e += dXdYdiff2;
-				}
 
-				if (startY !== endY && x !== endX && y !== previousY && y !== startY && y !== endY) {
-					addIntersection(x, y, getZ(x, y), interpolationWeight, edgeStartVertexIndex, edgeEndVertexIndex, edgeStartTextureCoord, edgeEndTextureCoord);
+					//if (startY !== endY && x !== endX && y !== previousY && y !== startY && y !== endY && storeIntersectionForScanlineFill) {
+					if (storeIntersectionForScanlineFill && y !== endY && startY) {
+						addIntersection(x, y);
+					}
 				}
+				framebuffer.set(x, y, getZ(x, y), color);
 				previousY = y;
 			}
 		} else {
@@ -180,9 +181,10 @@ function(exports, shader, framebuffer, data) {
 					e += dYdXdiff2;
 				}
 
-				if (y !== endY) {
-					addIntersection(x, y, getZ(x, y), interpolationWeight, edgeStartVertexIndex, edgeEndVertexIndex, edgeStartTextureCoord, edgeEndTextureCoord);
+				if (y !== endY && storeIntersectionForScanlineFill && startY) {
+					addIntersection(x, y);
 				}
+				framebuffer.set(x, y, getZ(x, y), color);
 			}
 		}
 		// END exercise Bresenham		
@@ -243,7 +245,7 @@ function(exports, shader, framebuffer, data) {
 
 		// For the start edge we need the last edge with derivative !=0,
 		// Pre-calculate the derivatives for last edge !=0 of polygon.
-		for (let i = polygon.length - 1; i >= 0; i--) {
+		for (let i = polygon.length - 1; i > 0; i--) {
 			startPoint = polygon[i];
 
 			if (i < polygon.length - 1) {
@@ -251,8 +253,8 @@ function(exports, shader, framebuffer, data) {
 			} else {
 				endPoint = polygon[0];
 			}
-			currY = vertices[startPoint][1];
-			nextY = vertices[endPoint][1];
+			currY = Math.floor(vertices[startPoint][1]);
+			nextY = Math.floor(vertices[endPoint][1]);
 
 			if ((derivative = calcDerivative(currY, nextY)) !== 0) {
 				break;
@@ -304,14 +306,14 @@ function(exports, shader, framebuffer, data) {
 
 			// Skip horizontal edges.
 			if (derivative !== 0) {
-			// Add end point of non horizontal edges.
-			//console.log("Add end point:" + nextX + ", " + nextY);
-			// Last derivative has to exist, always, also for the first edge.
-				addIntersection(nextX, nextY, nextZ);
+				// Add end point of non horizontal edges.
+				//console.log("Add end point:" + nextX + ", " + nextY);
+				// Last derivative has to exist, always, also for the first edge.
+				addIntersection(nextX, nextY);
 
 				// Add start point if edges are non monotonous, Peek point.
 				if (lastDerivative + derivative === 0) {
-					addIntersection(currX, currY, currZ);
+					addIntersection(currX, currY);
 				}
 			} else if (derivative === 0) {
 				// If current derivative ==0 then keep the last one.
@@ -478,29 +480,29 @@ function(exports, shader, framebuffer, data) {
 		// Loop over non empty scan lines.
 		scanlineIntersection.forEach((line, y) => {
 			// // Do (or skip) some safety check.
-			if ((line.length < 2) || (line.length % 2)) {
-				console.log("Error in number of intersection (" + line.length + ") in line: " + y);
-				return;
-			}
+			//if ((line.length < 2) || (line.length % 2)) {
+			//	console.log("Error in number of intersection (" + line.length + ") in line: " + y);
+			//	return;
+			//}
 			
 			// Order intersection in scanline.
 			line.sort((a, b) => a.x - b.x);
 			
 			// Loop over intersections in pairs of two.
-			for (let i = 0; i < line.length / 2; i++) {
+			for (let i = 0; i < line.length - 1; i += 2) {
 
 				// Calculate interpolation variables for current scanline.
 				// Necessary for z-buffer, shading and texturing.
-				var intersection1 = line[i * 2];
-				var intersection2 = line[i * 2 + 1];
+				var intersection1 = line[i];
+				var intersection2 = line[i + 1];
 
 				// Fill line section inside polygon, loop x.
-				for (let x = intersection1.x; x < intersection2.x; x++) {
+				for (let x = intersection1.x; x <= intersection2.x; x++) {
 					// Set z shorthand.
 					var z = getZ(x, y);
 
 					// Do horizontal clipping test (true if passed).
-					horizontalClippingTest = (x >= 0) && (x < width);
+					//horizontalClippingTest = (x >= 0) && (x < width);
 					
 					// Do a z-buffer test.
 					// to skip the shaderFunction if it is not needed.
@@ -510,20 +512,20 @@ function(exports, shader, framebuffer, data) {
 					// The Solution would be to use deferred-rendering.
 					// The z-Buffer Test could also be skipped, if
 					// there is only one convex model and we already do back-face culling.
-					if(horizontalClippingTest) {
-						zTest = framebuffer.zBufferTest(x, y, z, color);
-					}
+					//if(horizontalClippingTest) {
+					//	zTest = framebuffer.zBufferTest(x, y, z, color);
+					//}
 					// Fill (and shade) fragment it passed all tests.
-					if(zTest && horizontalClippingTest) {
+					//if(zTest && horizontalClippingTest) {
 						// Get color from texture.
-						if (texture != null) {
-							texture.sample(interpolationData.uvVec, color);
-						}
-						shadingFunction(color, interpolationData.weightOnScanline);
+					//	if (texture != null) {
+					//		texture.sample(interpolationData.uvVec, color);
+					//	}
+					//	shadingFunction(color, interpolationData.weightOnScanline);
 
 						// framebuffer.set without z-Test and dirty rectangle adjust.
-						framebuffer.set(x, y, z, color, false, false);
-					}
+						framebuffer.set(x, y, z, color);
+					//}
 					
 					// Step interpolation variables on current scanline.
 					// Even failing the z-buffer test we have to perform the interpolation step.
@@ -597,7 +599,7 @@ function(exports, shader, framebuffer, data) {
 		let a2 = vertices[0][1];
 		let a3 = vertices[0][2];
 
-		D = (a1 * A + a2 * B + a3 * C);
+		D = -(A * a1 + B * a2 + C * a3);
 
 		// Check result, applying the plane equation to the original polygon vertices.
 		//for(var i = 0; i < polygon.length; i++) {
@@ -676,6 +678,7 @@ function(exports, shader, framebuffer, data) {
 	function getZ(x, y) {
 		// We assume that the plane equation is up-to-date
 		// with the current polygon.
+		inverseC = 1 / C;
 		var z = -(A * x + B * y + D) * inverseC;
 
 		// Take this check out for speed.

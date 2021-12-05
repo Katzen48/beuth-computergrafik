@@ -145,7 +145,6 @@ function(exports, shader, framebuffer, data) {
 		// Distinction of cases for driving variable.
 		if(dXAbs >= dYAbs) {
 			// x is driving variable.
-			let previousY = y - dYSign;
 			e = dXAbs - dYAbs2;
 			while(x !== endX) {
 				// Do not add intersections for points on horizontal line
@@ -158,13 +157,11 @@ function(exports, shader, framebuffer, data) {
 					y += dYSign;
 					e += dXdYdiff2;
 
-					//if (startY !== endY && x !== endX && y !== previousY && y !== startY && y !== endY && storeIntersectionForScanlineFill) {
 					if (storeIntersectionForScanlineFill && y !== endY && startY) {
 						addIntersection(x, y);
 					}
 				}
 				framebuffer.set(x, y, getZ(x, y), color);
-				previousY = y;
 			}
 		} else {
 			// y is driving variable.
@@ -232,7 +229,7 @@ function(exports, shader, framebuffer, data) {
 		// Maybe skip polygons that are perpendicular to the screen / xy-plane.
 		// The plane calculation can be commented out if bi-linear interpolation is applied.
 		if(! calcPlaneEquation(vertices, polygon)) {
-			console.log("Skip plane(polygon) is perpendicular to the screen / xy-plane, color: " + color.name);
+			console.log("Skip plane(polygon) is perpendicular to the screen / xy-plane, color: " + color.colorname);
 			return;
 		}
 
@@ -315,7 +312,7 @@ function(exports, shader, framebuffer, data) {
 				if (lastDerivative + derivative === 0) {
 					addIntersection(currX, currY);
 				}
-			} else if (derivative === 0) {
+			} else {
 				// If current derivative ==0 then keep the last one.
 				derivative = lastDerivative;
 			}
@@ -503,7 +500,7 @@ function(exports, shader, framebuffer, data) {
 
 					// Do horizontal clipping test (true if passed).
 					//horizontalClippingTest = (x >= 0) && (x < width);
-					
+
 					// Do a z-buffer test.
 					// to skip the shaderFunction if it is not needed.
 					// This is not perfect as we still shade fragments
@@ -526,7 +523,7 @@ function(exports, shader, framebuffer, data) {
 						// framebuffer.set without z-Test and dirty rectangle adjust.
 						framebuffer.set(x, y, z, color);
 					//}
-					
+
 					// Step interpolation variables on current scanline.
 					// Even failing the z-buffer test we have to perform the interpolation step.
 					// Necessary for z-buffer, shading and texturing.
@@ -537,7 +534,7 @@ function(exports, shader, framebuffer, data) {
 			// End of loop over intersections on one scanline.
 		});
 		 // End of loop over all scanlines.
-				
+
 		// END exercise Scanline
 	}
 
@@ -595,9 +592,9 @@ function(exports, shader, framebuffer, data) {
 		// The result is the distance D of polygon plane to origin.
 		inverseC = 1 / C;
 		AdivC = A / C;
-		let a1 = vertices[0][0];
-		let a2 = vertices[0][1];
-		let a3 = vertices[0][2];
+		let a1 = vertices[polygon[0]][0];
+		let a2 = vertices[polygon[0]][1];
+		let a3 = vertices[polygon[0]][2];
 
 		D = -(A * a1 + B * a2 + C * a3);
 

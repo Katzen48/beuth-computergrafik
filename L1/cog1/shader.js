@@ -19,7 +19,7 @@ define(["exports"], function(exports) {
 	var shadingFunctionNames = ["none", "flat", "gouraud", "phong", "toon"];
 	// Name of the current/default shading function, which used for all nodes.
 	// Possible names are defined in shadingFunctionNames.
-	var shadingFunctionName = "none";
+	var shadingFunctionName = "flat";
 	// Shading-function called from raster.scanline function.
 	var shadingFuncton = null;
 
@@ -232,18 +232,25 @@ define(["exports"], function(exports) {
 
 		// Calculate diffuse light.
 		// Calculate vector from light to point and normalize on one step.
+		vec3.direction(pointLightPosition, point, lightDirection);
+		diffuse = pointLightIntensity * vec3.dot(lightDirection, normal) * (vec3.dot(lightDirection, normal) / (vec3.length(lightDirection)));
+		vec3.normalize(lightDirection);
 
 		// Cut light from the wrong direction that leads to negative light intensities.
+		diffuse = Math.max(diffuse, .00);
 
 		// Add ambient and diffuse Lambert intensity term.
+		ambientDiffuse += ambientLightIntensity + diffuse;
 
 		// Calculate reflection vector of light direction in respect to normal.
+		var reflect = [];
+		vec3.cross(lightDirection, normal, reflect);
 
 		// Specular light in eye direction ,which is +z in orthogonal projection,
 		// Otherwise it is the normalized negative eye/camera vector,
 		// which in turn is the negative point-vector when the camera is in the origin
 		// (not implemented).
-		//var specular = Math.max(0.0, vec3.dot(reflect, [0, 0, 1]));
+		var specular = specularLightIntensity * Math.pow(Math.max(0.0, vec3.dot(reflect, [0, 0, 1])), specularLightExponent);
 
 		// Check calculation
 		// if(specular > 0.9 || specular < 0) {
@@ -253,6 +260,7 @@ define(["exports"], function(exports) {
 		// }
 		// Do some cutoff for specular for speed.
 		// At least cutoff negative specular.
+		specular = Math.trunc(specular);
 
 		// END exercise Flat-Shading
 
@@ -305,7 +313,11 @@ define(["exports"], function(exports) {
 	 * See function none.
 	 */
 	function flat(color) {
+		vec3.set(color.rgba, color.rgbaShaded);
 
+		color.rgbaShaded[0] *= polygonLightIntensity;
+		color.rgbaShaded[1] *= polygonLightIntensity;
+		color.rgbaShaded[2] *= polygonLightIntensity;
 	}
 
 	/**
@@ -313,13 +325,25 @@ define(["exports"], function(exports) {
 	 */
 	function flatInit() {
 		// Calculate the center point of the polygon.
+		let sumX = 0, sumY = 0, sumZ = 0;
+		for (let i = 0; i < polygon.length / 3; i += 3) {
+			sumX += polygon[i];
+			sumY += polygon[i + 1];
+			sumZ += polygon[i + 2];
+		}
+
+		let polygonCenter = [
+			sumX / (polygon.length / 3),
+			sumY / (polygon.length / 3),
+			sumZ / (polygon.length / 3),
+		];
 
 		// Calculate light intensity at polygon center.
 		// Use ambient and diffuse light.
 
 		// Use ambient, diffuse and specular light.
-		//var intensity = calcLightIntensity(polygonCenter, polygonNormal);
-		//polygonLightIntensity = intensity["ambientDiffuse"] +  255 * intensity["specular"];
+		var intensity = calcLightIntensity(polygonCenter, polygonNormal);
+		polygonLightIntensity = intensity["ambientDiffuse"] +  255 * intensity["specular"];
 	}
 
 

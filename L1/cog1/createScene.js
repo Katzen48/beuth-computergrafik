@@ -17,50 +17,20 @@ function(exports, scenegraph, animation) {
 	 */
 	function init() {
 
-		var chairSeat = scenegraph.createNodeWithModel("chairSeat", "cube", { scale:30 });
-		chairSeat.scale([10, 0, 10]);
-		//chairSeat.translate([370, 0, 0])
-
-		var chairLeg1 = scenegraph.createNodeWithModel("chairLeg1", "cube", { scale:50 }, chairSeat);
-		chairLeg1.scale([-.9, 5, -0.9]);
-		chairLeg1.translate([20, -333, 20]);
-
-		var chairLeg2 = scenegraph.createNodeWithModel("chairLeg2", "cube", { scale:50 }, chairSeat);
-		chairLeg2.scale([-.9, 5, -0.9]);
-		chairLeg2.translate([20, -333, -20]);
-
-		var chairLeg3 = scenegraph.createNodeWithModel("chairLeg3", "cube", { scale:50 }, chairSeat);
-		chairLeg3.scale([-.9, 5, -0.9]);
-		chairLeg3.translate([-20, -333, -20]);
-
-		var chairLeg4 = scenegraph.createNodeWithModel("chairLeg4", "cube", { scale:50 }, chairSeat);
-		chairLeg4.scale([-.9, 5, -0.9]);
-		chairLeg4.translate([-20, -333, 20]);
-
-		var chairBack = scenegraph.createNodeWithModel("chairBack", "cube", { scale:30 }, chairSeat);
-		chairBack.scale([0, 15, -0.9]);
-		chairBack.translate([0, 513, -27]);
-
-		var chairLeftArmRest1 = scenegraph.createNodeWithModel("chairLeftArmRest1", "cube", { scale:30 }, chairSeat);
-		chairLeftArmRest1.scale([-.9, 0, -0.1]);
-		chairLeftArmRest1.translate([34, 280, -3]);
-
-		var chairLeftArmRest2 = scenegraph.createNodeWithModel("chairLeftArmRest2", "cube", { scale:30 }, chairLeftArmRest1);
-		chairLeftArmRest2.scale([0, 1, -0.9]);
-		chairLeftArmRest2.translate([0, -30, 33]);
-
-		var chairRightArmRest1 = scenegraph.createNodeWithModel("chairRightArmRest1", "cube", { scale:30 }, chairSeat);
-		chairRightArmRest1.scale([-.9, 0, -0.1]);
-		chairRightArmRest1.translate([-34, 280, -3]);
-
-		var chairRightArmRest2 = scenegraph.createNodeWithModel("chairRightArmRest2", "cube", { scale:30 }, chairRightArmRest1);
-		chairRightArmRest2.scale([0, 1, -0.9]);
-		chairRightArmRest2.translate([0, -30, 33]);
+		var cubeNode = scenegraph.createNodeWithModel("cube", "cube", {scale:300});
+		cubeNode.rotateTo([1.6, -3.87, 0]);
 
 		// BEGIN exercise myModel
 		
 		// END exercise myModel
-		
+
+		// Create a node for the light, which is not visible by default.
+		var lightnode = scenegraph.createPointLightNode("light", "diamond");
+
+		// Set light parameter.
+		// ambientLI, pointLI, pointPos, specularLI, specularLIExpo
+		scenegraph.setLights(0.5, 0.6, [200, 200, 300], 4.0, 10);
+
 		return;
 
 		//var cubeNode = scenegraph.createNodeWithModel("cube", "cube", {scale:100, textureURL:"brickWall.jpg"});		

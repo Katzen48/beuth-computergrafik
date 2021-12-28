@@ -518,7 +518,7 @@ function(exports, shader, framebuffer, data) {
 					//	if (texture != null) {
 					//		texture.sample(interpolationData.uvVec, color);
 					//	}
-					//	shadingFunction(color, interpolationData.weightOnScanline);
+						shadingFunction(color, interpolationData.weightOnScanline);
 
 						// framebuffer.set without z-Test and dirty rectangle adjust.
 						framebuffer.set(x, y, z, color);

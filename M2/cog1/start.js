@@ -46,8 +46,7 @@ require(["dojo", "dojo/parser", "dojo/domReady!"], function(dojo) {
 			// On same [maybe local] HTTP-server as used to load dojo:
 			//"cog1" : "/BHT/src/cog1/cog1_JS_template/cog1"
 			// "cog1" : "/~gers/cog1_sol/cog1"
-			//"cog1" : "/beuth-computergrafik/M2/cog1"
-			"cog1" : "/Users/Startrekfreak/Documents/Studium/Master Medieninformatik/Module/Computergrafik/Aufgaben/M2/cog1"
+			"cog1" : "/beuth-computergrafik/M2/cog1"
 		},
 		// Add one entry for each custom module.
 		// This is, among others, necessary to apply the path parameter.
